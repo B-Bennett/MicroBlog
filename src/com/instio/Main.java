@@ -12,41 +12,76 @@ public class Main {
 
     public static void main(String[] args) {
         ArrayList<Post> posts = new ArrayList();
-        User user = new User();
         Spark.staticFileLocation("public");
         Spark.init();
-            Spark.post(
-            "/",
-            ((request, response) -> {
-                Session session = request.session();
-                String username = session.attribute("username");//read username
-                if (username == null) { //if user is not logged in
-                    return new ModelAndView(new HashMap(), "not-logged-in.html");
-                }
-                HashMap m = new HashMap();
-                m.put("username", username);
-                return new ModelAndView(m, "logged-in.html");
-            }),
 
-                Spark.post(
-                "/create-post",
-            ((request1, response1) -> {
-                String username = request1.queryParams("username");
-                Session session = request1.session();
-                session.attribute("username", username);
-                response1.redirect("/"); // "/" represents the top level. return page posted
-                return response1 + ""; //keep adding posts
-            })
-        );
+
             Spark.get(
-                "/posts",
-            ((request, response) -> {
-                HashMap m = new HashMap();
-                m.put("name", user.name);
-                m.put("posts", posts);
-                return new ModelAndView(m, "/");
-            }),
-            new MustacheTemplateEngine()
+                "/",
+                ((request, response) -> {
+                    Session session = request.session();
+                    String username = session.attribute("name");//read username
+                    if (username == null) { //if user is not logged in
+                        return new ModelAndView(new HashMap(), "index.html");
+                    }
+                    HashMap m = new HashMap();
+                    m.put("name", username);
+                    m.put("posts", posts);
+                    return new ModelAndView(m, "post.html");
+                }),
+                    new MustacheTemplateEngine()
+            );
+            Spark.post(
+                "/create-user",
+                ((request, response) -> {
+                    String username = request.queryParams("username");
+                    Session session = request.session();
+                    session.attribute("username", username);
+                    response.redirect("/"); // "/" represents the top level. return page posted
+                    return response + ""; //keep adding posts
+                })
+             );
+            Spark.post(
+                    "/create-post",
+                    ((request, response) -> {
+                        String username = request.queryParams("username");
+                        Session session = request.session();
+                        session.attribute("username", username);
+                        response.redirect("/"); // "/" represents the top level. return page posted
+                        return response + ""; //keep adding posts
+                    })
+            );
+             Spark.post(
+                     "/delete-beer",
+                     ((request, response) -> {
+                         String id = request.queryParams("postid");
+                         try {
+                             int idNum = Integer.valueOf(id);
+                             posts.remove(idNum - 1);
+                             for (int i = 0; i < posts.size(); i++) {
+                                 posts.get(i).id = i + 1; //changes the number when you delete a beer
+                             }
+                         } catch (Exception e) {
+
+                         }
+                         response.redirect("/");
+                         return "";
+                     })
+             );
+            Spark.post(
+                    "/edit-beer",
+                    ((request, response) -> {
+                        String id = request.queryParams("postid");
+                        try {
+                            int idNum = Integer.valueOf(id);
+                            Post post = posts.get(idNum-1) ;
+                            post.text = request.queryParams("edit-post");
+                        } catch (Exception e) {
+
+                        }
+                        response.redirect("/");
+                        return "";
+                    })
             );
         }
     }

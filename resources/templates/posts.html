@@ -3,12 +3,18 @@
 <form action="create-post" method="post">
     <input type="text" placeholder="Write a post" name="postText"/>
     <button type="submit">Submit</button>
-    <input type="text" placeholder="Post #" name="postText"/>
+</form>
+<form action="delete-post" method="post">
+    <input type="id" placeholder="post #" name="postid"/>
     <button type="submit">Delete</button>
+</form>
+<form action="edit-post" method="post">
+    <input type=text placeholder="Edit post" name="postid"/>
+    <button type="submit">Edit</button>>
 </form>
 Post by {{name}} :<br>
 {{#posts}}
-{{text}}<br>
+{{id}}. {{text}}<br>
 {{/posts}}
 </body>
 </html>
