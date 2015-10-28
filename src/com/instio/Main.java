@@ -1,6 +1,7 @@
 package com.instio;
 
 import spark.ModelAndView;
+import spark.Session;
 import spark.Spark;
 import spark.template.mustache.MustacheTemplateEngine;
 
@@ -14,33 +15,38 @@ public class Main {
         User user = new User();
         Spark.staticFileLocation("public");
         Spark.init();
-        Spark.post(
-                "/create-user",
-                ((request, response) -> {
-                    user.name = request.queryParams("username");
-                    response.redirect("/posts");
-                    return "";
-                })
-        );
-        Spark.post(
+            Spark.post(
+            "/",
+            ((request, response) -> {
+                Session session = request.session();
+                String username = session.attribute("username");//read username
+                if (username == null) { //if user is not logged in
+                    return new ModelAndView(new HashMap(), "not-logged-in.html");
+                }
+                HashMap m = new HashMap();
+                m.put("username", username);
+                return new ModelAndView(m, "logged-in.html");
+            }),
+
+                Spark.post(
                 "/create-post",
-                ((request1, response1) -> {
-                    Post post = new Post();
-                    post.text = request1.queryParams("postText"); //name in my post.html
-                    posts.add(post);
-                    response1.redirect("/posts"); // "/" represents the top level. return page posted
-                    return response1 + ""; //keep adding posts
-                })
+            ((request1, response1) -> {
+                String username = request1.queryParams("username");
+                Session session = request1.session();
+                session.attribute("username", username);
+                response1.redirect("/"); // "/" represents the top level. return page posted
+                return response1 + ""; //keep adding posts
+            })
         );
-        Spark.get(
+            Spark.get(
                 "/posts",
-                ((request, response) -> {
-                    HashMap m = new HashMap();
-                    m.put("name", user.name);
-                    m.put("posts", posts);
-                    return new ModelAndView(m, "posts.html");
-                }),
-                new MustacheTemplateEngine()
-        );
+            ((request, response) -> {
+                HashMap m = new HashMap();
+                m.put("name", user.name);
+                m.put("posts", posts);
+                return new ModelAndView(m, "/");
+            }),
+            new MustacheTemplateEngine()
+            );
+        }
     }
-}
