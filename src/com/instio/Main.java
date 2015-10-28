@@ -20,12 +20,12 @@ public class Main {
                 "/",
                 ((request, response) -> {
                     Session session = request.session();
-                    String username = session.attribute("name");//read username
-                    if (username == null) { //if user is not logged in
+                    String name = session.attribute("username");//read username
+                    if (name == null) { //if user is not logged in
                         return new ModelAndView(new HashMap(), "index.html");
                     }
                     HashMap m = new HashMap();
-                    m.put("name", username);
+                    m.put("username", name);
                     m.put("posts", posts);
                     return new ModelAndView(m, "post.html");
                 }),
@@ -34,21 +34,22 @@ public class Main {
             Spark.post(
                 "/create-user",
                 ((request, response) -> {
-                    String username = request.queryParams("username");
+                    String name = request.queryParams("name");
                     Session session = request.session();
-                    session.attribute("username", username);
+                    session.attribute("username", name);
                     response.redirect("/"); // "/" represents the top level. return page posted
-                    return response + ""; //keep adding posts
+                    return ""; //keep adding posts
                 })
              );
             Spark.post(
                     "/create-post",
                     ((request, response) -> {
-                        String username = request.queryParams("username");
-                        Session session = request.session();
-                        session.attribute("username", username);
-                        response.redirect("/"); // "/" represents the top level. return page posted
-                        return response + ""; //keep adding posts
+                       Post post = new Post();
+                        post.id = posts.size() + 1;
+                        post.text = request.queryParams("text");
+                        posts.add(post);
+                        response.redirect("/");
+                        return "";
                     })
             );
              Spark.post(
@@ -74,7 +75,7 @@ public class Main {
                         String id = request.queryParams("postid");
                         try {
                             int idNum = Integer.valueOf(id);
-                            Post post = posts.get(idNum-1) ;
+                            Post post = posts.get(idNum - 1);
                             post.text = request.queryParams("edit-post");
                         } catch (Exception e) {
 
